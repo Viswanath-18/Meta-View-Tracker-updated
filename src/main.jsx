@@ -3,7 +3,10 @@ import ReactDOM from "react-dom/client";
 import "leaflet/dist/leaflet.css";
 
 import { BrowserRouter } from "react-router-dom";
-
+import { AuthProvider, } from "./context/AuthContext";
+import {
+  TrackingProvider,
+} from "./context/TrackingContext";
 import App from "./App";
 
 import "./index.css";
@@ -25,8 +28,18 @@ L.Icon.Default.mergeOptions({
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+
+    <AuthProvider>
+
+      <TrackingProvider>
+
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+
+      </TrackingProvider>
+
+    </AuthProvider>
+
   </React.StrictMode>
 );

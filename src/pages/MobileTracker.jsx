@@ -5,11 +5,14 @@ import {
   set,
   push,
 } from "firebase/database";
-
+import {
+  useAuth,
+} from "../context/AuthContext";
 import { database } from "../firebase/firebaseConfig";
 
 function MobileTracker() {
-
+const { currentUser } =
+  useAuth();
   const watchIdRef = useRef(null);
 
   const [tracking, setTracking] = useState(false);
@@ -39,6 +42,11 @@ function MobileTracker() {
 
       async (position) => {
 
+        // Prevent updates after tracking stopped
+        if (watchIdRef.current === null) {
+          return;
+        }
+
         const payload = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
@@ -53,15 +61,21 @@ function MobileTracker() {
 
           // Save current live position
           await set(
-            ref(database, "tracking/current"),
-            payload
-          );
+  ref(
+    database,
+    `users/${currentUser.uid}/current`
+  ),
+  payload
+);
 
           // Save history path
           await push(
-            ref(database, "tracking/history"),
-            payload
-          );
+  ref(
+    database,
+    `users/${currentUser.uid}/history`
+  ),
+  payload
+);
 
           setLocation(payload);
 
@@ -106,27 +120,31 @@ function MobileTracker() {
 
       {
         enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
+        timeout: 30000,
+        maximumAge: 10000,
       }
     );
-  };
-
+};
   // Stop tracking
-  const stopTracking = () => {
+const stopTracking = () => {
 
-    if (watchIdRef.current !== null) {
+  // Stop browser GPS watcher
+  if (watchIdRef.current !== null) {
 
-      navigator.geolocation.clearWatch(
-        watchIdRef.current
-      );
+    navigator.geolocation.clearWatch(
+      watchIdRef.current
+    );
 
-      setTracking(false);
+    // IMPORTANT
+    // Reset watcher reference completely
+    watchIdRef.current = null;
+  }
 
-      setStatus("Tracking stopped");
-    }
-  };
+  // Update UI state
+  setTracking(false);
 
+  setStatus("Tracking stopped");
+};
   // Cleanup
   useEffect(() => {
 

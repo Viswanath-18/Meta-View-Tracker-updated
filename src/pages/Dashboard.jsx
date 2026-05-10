@@ -5,6 +5,10 @@ import {
   onValue,
 } from "firebase/database";
 
+import {
+  useAuth,
+} from "../context/AuthContext";
+
 import { database } from "../firebase/firebaseConfig";
 
 import MapView from "../components/MapView";
@@ -20,6 +24,9 @@ function Dashboard() {
   const [autoCenter, setAutoCenter] =
     useState(true);
 
+    const { currentUser } =
+  useAuth();
+
   const [connectionStatus, setConnectionStatus] =
     useState("Waiting for GPS...");
 
@@ -27,10 +34,16 @@ function Dashboard() {
   useEffect(() => {
 
     const currentRef =
-      ref(database, "tracking/current");
+      ref(
+  database,
+  `users/${currentUser.uid}/current`
+);
 
     const historyRef =
-      ref(database, "tracking/history");
+      ref(
+  database,
+  `users/${currentUser.uid}/history`
+);
 
     // Current position listener
     const unsubscribeCurrent = onValue(
